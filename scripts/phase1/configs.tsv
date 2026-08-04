@@ -1,0 +1,30 @@
+# configs.tsv — one server configuration per line.
+# LABEL           MODEL_PATH                                        TP  PP  EP  MAX_LEN
+# ---- dense small (fits 1 node): distribution overhead isolation ----
+#l8_tp1            /opt/models/Llama-3.1-8B-Instruct                 1   1   0   8192
+#l8_tp2            /opt/models/Llama-3.1-8B-Instruct                 2   1   0   8192
+#l8_tp4            /opt/models/Llama-3.1-8B-Instruct                 4   1   0   8192
+#l8_pp2            /opt/models/Llama-3.1-8B-Instruct                 1   2   0   8192
+#l8_pp4		  /opt/models/Llama-3.1-8B-Instruct                 1   4   0   8192
+#l8_tp2pp2        /opt/models/Llama-3.1-8B-Instruct                2   2   0   8192
+# ---- dense large (needs >=2 nodes in FP16): the core dense story ----
+#l70_tp2           /opt/models/Llama-3.3-70B-Instruct                2   1   0   8192
+#l70_tp4           /opt/models/Llama-3.3-70B-Instruct                4   1   0   8192
+#l70_pp2           /opt/models/Llama-3.3-70B-Instruct                1   2   0   8192
+#l70_pp4           /opt/models/Llama-3.3-70B-Instruct                1   4   0   8192
+#l70_tp2pp2        /opt/models/Llama-3.3-70B-Instruct                2   2   0   8192
+# ---- MoE: TP vs TP+EP contrast (all-reduce vs all-to-all on the wire) ----
+#q30_tp1           /opt/models/Qwen3-30B-A3B-Instruct-2507           1   1   0   8192
+#q30_tp2pp2        /opt/models/Qwen3-30B-A3B-Instruct-2507           2   2   0   8192
+#q30_tp2           /opt/models/Qwen3-30B-A3B-Instruct-2507           2   1   0   8192
+#q30_tp4           /opt/models/Qwen3-30B-A3B-Instruct-2507           4   1   0   8192
+#q30_pp2         /opt/models/Qwen3-30B-A3B-Instruct-2507             1   2   0   8192
+#q30_pp4         /opt/models/Qwen3-30B-A3B-Instruct-2507             1   4   0   8192
+#q30_tp2pp2_ep   /opt/models/Qwen3-30B-A3B-Instruct-2507             2   2   1   8192
+#q30_tp4_ep        /opt/models/Qwen3-30B-A3B-Instruct-2507           4   1   1   8192
+#q30_tp2_ep        /opt/models/Qwen3-30B-A3B-Instruct-2507           2   1   1   8192
+# ---- MoE large-total (optional, add when downloaded) ----
+#gpt120_tp4_ep    /opt/models/gpt-oss-120b                          4   1   1   8192
+#mix87_tp4_ep     /opt/models/Mixtral-8x7B-Instruct-v0.1            4   1   1   8192
+# ---- single-node 70B reference via AWQ (experimental on GB10 kernels) ----
+#l70awq_tp1       /opt/models/Llama-3.3-70B-Instruct-AWQ            1   1   0   8192

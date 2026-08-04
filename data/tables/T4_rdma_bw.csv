@@ -1,0 +1,15 @@
+run,pair,rail,bw_4KB,bw_64KB,bw_1MB,bw_8MB,bw_peak,pct_line_rate
+pt_wbw_node2node3_rB,node2node3,B,100.36,109.09,109.22,108.98,109.29,109.3
+pt_wbw_node2node4_rA,node2node4,A,83.83,109.19,109.22,108.94,109.29,109.3
+pt_wbw_node2node4_rB,node2node4,B,100.37,109.01,109.14,108.95,109.21,109.2
+pt_wbw_node2node3_rA,node2node3,A,82.88,109.14,109.16,108.91,109.25,109.2
+pt_wbw_node3node4_rB,node3node4,B,100.26,109.07,109.22,108.98,109.27,109.3
+pt_wbw_node3node4_rA,node3node4,A,100.28,109.05,109.22,108.97,109.26,109.3
+pt_wbw_node1node4_rA,node1node4,A,81.36,109.08,109.18,108.94,109.21,109.2
+pt_wbw_node1node3_rB,node1node3,B,82.05,109.06,109.18,108.97,109.21,109.2
+pt_wbw_node1node2_rA,node1node2,A,80.99,109.15,109.23,109.01,109.29,109.3
+pt_wbw_node1node2_rB,node1node2,B,82.81,109.17,109.19,109.05,109.27,109.3
+pt_wbw_node1node3_rA,node1node3,A,80.24,109.15,109.24,108.94,109.28,109.3
+pt_q4_n1n2,n1n2,dual/other,111.86,111.86,111.86,111.86,0.0,0.0
+pt_wbw_node1node4_rB,node1node4,B,82.83,109.15,109.23,108.97,109.26,109.3
+pt_dual_n1n2,n1n2,dual/other,98.04,98.04,98.04,98.04,0.0,0.0
