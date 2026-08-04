@@ -86,7 +86,7 @@ Place at the **same absolute path on every node** and update `configs.tsv`.
 - vLLM `0.23.1rc1.dev1551+g61aca5d75` (development build; later releases may
   select different collective algorithms or expert-dispatch backends)
 - NVIDIA driver 580.x
-- Container: [FILL IN — repository and commit hash you built from]
+- Container: https://github.com/eugr/spark-vllm-docker Follow the instructions in this repo on how to use their containers. You may have to build it from scratch. For this we did build it from scratch.
 
 Full version details in `logs/versions_*.txt`.
 
