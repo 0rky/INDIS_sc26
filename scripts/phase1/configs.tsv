@@ -1,4 +1,5 @@
 # configs.tsv — one server configuration per line.
+# Uncomment the line that you want to run
 # LABEL           MODEL_PATH                                        TP  PP  EP  MAX_LEN
 # ---- dense small (fits 1 node): distribution overhead isolation ----
 #l8_tp1            /opt/models/Llama-3.1-8B-Instruct                 1   1   0   8192
@@ -23,8 +24,4 @@
 #q30_tp2pp2_ep   /opt/models/Qwen3-30B-A3B-Instruct-2507             2   2   1   8192
 #q30_tp4_ep        /opt/models/Qwen3-30B-A3B-Instruct-2507           4   1   1   8192
 #q30_tp2_ep        /opt/models/Qwen3-30B-A3B-Instruct-2507           2   1   1   8192
-# ---- MoE large-total (optional, add when downloaded) ----
-#gpt120_tp4_ep    /opt/models/gpt-oss-120b                          4   1   1   8192
-#mix87_tp4_ep     /opt/models/Mixtral-8x7B-Instruct-v0.1            4   1   1   8192
-# ---- single-node 70B reference via AWQ (experimental on GB10 kernels) ----
-#l70awq_tp1       /opt/models/Llama-3.3-70B-Instruct-AWQ            1   1   0   8192
+
