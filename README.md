@@ -98,7 +98,7 @@ transport verification and the expert-parallelism finding are in `logs/`.
 
 ## Citation
 
-[FILL IN once the paper has a DOI or arXiv identifier]
+[FUTURE]
 
 ## License
 
