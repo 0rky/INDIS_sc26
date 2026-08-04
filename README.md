@@ -102,4 +102,4 @@ transport verification and the expert-parallelism finding are in `logs/`.
 
 ## License
 
-[Choose one — MIT or Apache-2.0 is conventional for artifacts]
+Apache-2.0 
