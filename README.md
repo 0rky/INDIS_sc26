@@ -41,7 +41,7 @@ Output appears in `data/tables/figures_corrected/`. Compare against `figures/`.
 ## B. Re-running Phase 0: the communication envelope
 
 Phase 0 measures what the fabric can do, independently of any model. It runs
-first, because the Phase 1 results are interpreted against this envelope.
+first, because the Phase 1 results are interpreted against this envelope. Hardware: 4GB10 connected to a switch with star topology.
 
 ### B.1 One-time setup (all four nodes)
 
