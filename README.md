@@ -38,25 +38,169 @@ python3 analysis/plot_nccl_v2.py --root data --line-rate-gbps 100 --annotate-pro
 
 Output appears in `data/tables/figures_corrected/`. Compare against `figures/`.
 
-## Re-running the experiments (requires the hardware)
+## B. Re-running Phase 0: the communication envelope
 
-Four GB10 nodes with dual-rail RoCEv2 through one switch. See
-`scripts/phase1/` and follow in order:
+Phase 0 measures what the fabric can do, independently of any model. It runs
+first, because the Phase 1 results are interpreted against this envelope.
 
-1. `setup_container.sh` — build and distribute the serving container
-2. `setup_client_env.sh` — CPU-only client environment on the launch node
-3. `start_ray.sh` — form the cluster (set `MODE=dual|single|tcp`)
-4. `run_matrix.sh configs.tsv` — run the campaign; Please look at the tsv file and uncomment the line that you want to learn
-5. `collect_all.sh --fresh` — gather results to one node
-6. `analyze_phase1.py` then `reanalyze_v2.py` — build the tables
+### B.1 One-time setup (all four nodes)
 
-**Two validation checks must pass before trusting any result:**
+```bash
+sudo apt install -y iperf3 perftest ethtool sysstat chrony jq \
+                    openmpi-bin libopenmpi-dev numactl
+```
 
-- Single-node configurations must record **exactly zero** RDMA bytes.
-  Confirm with `verify_run.sh <run_id>`.
-- The transport NCCL actually used must match the intended mode. Confirm with
-  `grep "via NET" server_logs/*.log` — expect `NET/IB` for RoCE modes and
-  `NET/Socket` for TCP. See `logs/transport_verification.txt` for ours.
+Set up passwordless SSH from the launch node to all four nodes, using host
+aliases `node1`–`node4` in `~/.ssh/config`. Create a working directory that
+exists at the same path everywhere and deploy the scripts:
+
+```bash
+for n in node1 node2 node3 node4; do
+  ssh $n 'sudo mkdir -p /opt/phase0/runs && sudo chown -R $USER /opt/phase0'
+  scp scripts/phase0/{env.sh,snapshot.sh,capture_local.sh} $n:/opt/phase0/
+  ssh $n 'chmod +x /opt/phase0/*.sh'
+done
+cp scripts/phase0/*.sh /opt/phase0/ && chmod +x /opt/phase0/*.sh
+```
+
+Build `nccl-tests` **with MPI support** at `/opt/nccl-tests` on every node:
+
+```bash
+make MPI=1 MPI_HOME=/usr/lib/aarch64-linux-gnu/openmpi CUDA_HOME=/usr/local/cuda -j
+```
+
+MPI hostfiles on the launch node:
+
+```bash
+printf "node1 slots=1\nnode2 slots=1\nnode3 slots=1\nnode4 slots=1\n" > ~/hosts4.txt
+printf "node1 slots=1\nnode2 slots=1\n" > ~/hosts2.txt
+```
+
+### B.2 Preflight checks (do not skip)
+
+**Link speeds must match across all eight links.** Mixed rates invalidate every
+collective measurement:
+
+```bash
+for n in node1 node2 node3 node4; do
+  ssh $n 'ethtool enp1s0f0np0 | grep Speed; ethtool enP2p1s0f0np0 | grep Speed'
+done
+```
+
+**Jumbo frames end-to-end, both rails:**
+
+```bash
+for i in 1 3 4; do
+  ping -M do -s 8972 -c 2 192.168.100.$i    # rail A
+  ping -M do -s 8972 -c 2 192.168.101.$i    # rail B
+done
+```
+
+**Find the RoCE v2 GID index** and set it in `env.sh` on every node:
+
+```bash
+for D in rocep1s0f0 roceP2p1s0f0; do
+  for g in /sys/class/infiniband/$D/ports/1/gid_attrs/types/*; do
+    i=$(basename $g)
+    echo "$i $(cat $g 2>/dev/null) $(cat /sys/class/infiniband/$D/ports/1/gids/$i)"
+  done
+done
+```
+
+Use the index whose type is `RoCE v2` and whose GID contains the rail's IPv4
+address. It must be the same index on every node.
+
+Reduce noise: `sudo systemctl disable --now irqbalance`, set the CPU governor to
+performance, and leave the switch at factory defaults (this is deliberate — the
+paper characterizes the default configuration).
+
+### B.3 Run the three experiments
+
+```bash
+cd /opt/phase0
+
+# A. TCP point-to-point envelope  (~1 hour)
+for n in node1 node2 node3 node4; do
+  ssh $n 'pkill iperf3; iperf3 -s -p 5201 -D; iperf3 -s -p 5202 -D'
+done
+./run_iperf.sh
+
+# B. RDMA point-to-point, all six pairs and both rails  (~2 hours)
+./run_perftest.sh
+
+# C. NCCL collectives: 3 collectives x {2,4} nodes x 3 transports x 3 reps  (~4-6 hours)
+./run_nccl.sh
+```
+
+**Validity check after the first NCCL run of each transport mode.** A RoCE run
+that silently fell back to sockets is invalid and must be discarded:
+
+```bash
+grep -h "via NET" /opt/phase0/runs/<run_id>/nccl.*.log | sort -u
+```
+
+Expect `NET/IB` for the `dual` and `single` modes and `NET/Socket` for `tcp`.
+
+Sanity gates before trusting the data: per-rail RDMA bandwidth should approach
+line rate, the dual-rail aggregate roughly twice that, 2-byte latency should be
+single-digit microseconds, and all six node pairs should be symmetric.
+
+### B.4 Collect and analyze
+
+```bash
+./collect_results.sh                      # -> ~/phase0_results/
+python3 analysis/parse_nccl_v2.py --root ~/phase0_results --verbose
+python3 analysis/plot_nccl_v2.py  --root ~/phase0_results \
+        --line-rate-gbps 100 --annotate-protocols
+```
+
+`parse_nccl_v2.py` writes `T6_nccl_full.csv` (every message size) and
+`T6_nccl_summary.csv`, and reports any run that failed to parse. The plotting
+script produces the bandwidth curve, the small-message latency figure, and the
+per-collective rail-scaling figure used in the paper.
+
+---
+
+## C. Re-running Phase 1: the inference campaign
+
+Requires the Phase 0 testbed plus model weights.
+
+```bash
+cd /opt/phase1
+./setup_container.sh          # build and distribute the serving container
+bash setup_client_env.sh      # CPU-only client environment on the launch node
+./start_ray.sh                # form the cluster; MODE=dual|single|tcp
+./run_matrix.sh configs.tsv   # the campaign; resumable after interruption
+./collect_all.sh --fresh      # gather results to one node
+```
+
+Build the tables:
+
+```bash
+python3 analysis/analyze_phase1.py --root ~/phase1_results
+python3 analysis/reanalyze_v2.py   --root ~/phase1_results --line-rate-gbps 200
+```
+
+For the transport comparison, restart the cluster in TCP mode and re-run the two
+four-node tensor-parallel configurations:
+
+```bash
+./stop_ray.sh && MODE=tcp ./start_ray.sh
+MODE=tcp ./run_matrix.sh configs_tcp.tsv
+./stop_ray.sh && MODE=dual ./start_ray.sh
+```
+
+**Two validation checks must pass before trusting any Phase 1 result:**
+
+- Single-node configurations must record **exactly zero** RDMA bytes. Confirm
+  with `verify_run.sh <run_id>`.
+- The transport NCCL actually used must match the intended mode:
+  `grep "via NET" server_logs/*.log`. See `logs/transport_verification.txt`
+  for ours.
+
+**Estimated time:** Phase 0 about one day; Phase 1 several days, dominated by
+loading model weights across nodes.
+
 
 ## Key data files
 
