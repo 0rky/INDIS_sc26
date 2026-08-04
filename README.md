@@ -10,14 +10,15 @@ scripts/phase0/     microbenchmark sweep (iperf3, perftest, nccl-tests)
 scripts/phase1/     inference campaign: cluster setup, matrix driver, instrumentation
 analysis/           analysis and plotting code, plus the analytical traffic model
 data/tables/        derived result tables (CSV) — these regenerate every figure
-data/raw/           per-cell raw measurements: manifests, client results, counters, time series
+data/raw.zip        zip file of per-cell raw measurements: manifests, client results, counters, time series
 figures/            the figures as they appear in the paper
 logs/               software versions and evidence excerpts for two key claims
 ```
 
 ## Reproducing the figures without hardware (5 minutes)
 
-This is the level most readers will want. No GB10 cluster required.
+This is the level most readers will want. No GB10 cluster required. Raw per-cell measurements are in `raw_measurements.tar.gz`
+(`tar xzf data/raw_measurements.tar.gz`). The derived tables in `data/tables/` are sufficient to regenerate every figure.
 
 ```bash
 conda create -n indis python=3.12 -y && conda activate indis
