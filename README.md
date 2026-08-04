@@ -20,6 +20,8 @@ logs/               software versions and evidence excerpts for two key claims
 This is the level most readers will want. No GB10 cluster required. Raw per-cell measurements are in `raw_measurements.tar.gz`
 (`tar xzf data/raw_measurements.tar.gz`). The derived tables in `data/tables/` are sufficient to regenerate every figure.
 
+We expect the models inside of /opt/models/ look at the config.tsv file to look at the names of the folder the script is expecting. They are similar to huggingface name for the model.  
+
 ```bash
 conda create -n indis python=3.12 -y && conda activate indis
 pip install pandas matplotlib
@@ -44,7 +46,7 @@ Four GB10 nodes with dual-rail RoCEv2 through one switch. See
 1. `setup_container.sh` — build and distribute the serving container
 2. `setup_client_env.sh` — CPU-only client environment on the launch node
 3. `start_ray.sh` — form the cluster (set `MODE=dual|single|tcp`)
-4. `run_matrix.sh configs.tsv` — run the campaign; resumable
+4. `run_matrix.sh configs.tsv` — run the campaign; Please look at the tsv file and uncomment the line that you want to learn
 5. `collect_all.sh --fresh` — gather results to one node
 6. `analyze_phase1.py` then `reanalyze_v2.py` — build the tables
 
