@@ -92,7 +92,7 @@ Full version details in `logs/versions_*.txt`.
 
 ## Notes
 
-`data/raw/` excludes `ethtool` dumps and NCCL debug logs, which are large and
+`data/raw.zip` excludes `ethtool` dumps and NCCL debug logs, which are large and
 redundant with the RDMA counters used in the analysis. Excerpts documenting the
 transport verification and the expert-parallelism finding are in `logs/`.
 
